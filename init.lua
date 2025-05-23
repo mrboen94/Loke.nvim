@@ -1,3 +1,43 @@
+local default_font_size = 15
+
+-- Function to trigger the font selection UI for WezTerm
+function ChangeWezTermFont()
+  local font_choices = {
+    'PragmataPro Mono Liga',
+    'Comic Code Ligatures',
+    -- Add any other fonts you want to select from
+  }
+
+  vim.ui.select(font_choices, {
+    prompt = 'Select a font for WezTerm:',
+  }, function(selected_font) -- 'selected_font' is the string value of the chosen item
+    if selected_font then
+      -- Instead of vim.o.guifont, call your WezTerm function
+      local notification_message = 'WezTerm font set to: ' .. selected_font
+      set_wezterm_font(selected_font, notification_message)
+    else
+      vim.notify('Font selection cancelled.', vim.log.levels.INFO)
+    end
+  end)
+end
+
+-- Function to trigger the font selection UI for Neovim GUI
+function ChangeNeovimFont()
+  local fontsss = {
+    'PragmataPro Mono Liga', -- Default monospace font
+    'Comic Code Ligatures',
+  }
+
+  vim.ui.select(fontsss, {
+    prompt = 'Select a font:',
+  }, function(font)
+    if font then
+      vim.o.guifont = font
+      vim.notify('Font changed to: ' .. font, vim.log.level.INFO)
+    end
+  end)
+end
+
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
@@ -196,6 +236,61 @@ require('lazy').setup({
         changedelete = { text = '~' },
       },
     },
+  },
+  {
+    -- Wezterm config plugin
+    'winter-again/wezterm-config.nvim',
+    config = function()
+      local wezterm_config = require 'wezterm-config'
+
+      wezterm_config.setup ({
+        append_wezterm_to_rtp = false, -- As you're not requiring modules from Wezterm config
+      })
+
+      local set_wezterm_font = function(font_name, notify_message)
+        if wezterm_config and wezterm_config.set_wezterm_user_var then
+          wezterm_config.set_wezterm_user_var('font', font_name)
+          vim.notify(notify_message, vim.log.levels.INFO, { title = 'Wezterm Config' })
+        else
+          vim.notify('Error: wezterm_config or set_wezterm_user_var not available.', vim.log.levels.ERROR, { title = 'Wezterm Config' })
+          print "Error: wezterm_config or set_wezterm_user_var not available. Ensure it's loaded correctly."
+        end
+      end
+      -- local set_wezterm_font = function(font_name, notify_message)
+      --   wezterm_config.set_wezterm_user_var('font', font_name)
+      --   vim.notify(notify_message, vim.log.levels.INFO, { title = 'Wezterm Config' })
+      -- end
+
+      local reset_font_size = function()
+        wezterm_config.set_wezterm_user_var('font_size', default_font_size)
+      end
+
+      local set_wezterm_font_size = function(size, notify_message)
+        local size_num = tonumber(size)
+        if size_num then
+          wezterm_config.set_wezterm_user_var('font_size', tostring(size_num))
+          vim.notify(notify_message, vim.log.levels.INFO, { title = 'Wezterm Config' })
+        else
+          vim.notify('Invalid font size input', vim.log.levels.ERROR, { title = 'Wezterm Config' })
+        end
+      end
+
+      local prompt_for_font_size = function()
+        vim.ui.input({ prompt = 'Enter font size: ' }, function(input)
+          if input then
+            set_wezterm_font_size(input, 'Set Wezterm font size to ' .. input)
+          end
+        end)
+      end
+      -- Keymap to reset font size
+      vim.keymap.set('n', '<leader>wpr', reset_font_size, { desc = 'Reset Wezterm Font Size' })
+
+      -- Keymap to set Font Size
+      vim.keymap.set('n', '<leader>wps', prompt_for_font_size, { desc = 'Set Wezterm Font Size' })
+
+      -- Keymap to set font
+      vim.keymap.set('n', '<leader>wpp', ':lua ChangeNeovimFont()<CR>', { desc = 'Change Font' })
+    end,
   },
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
@@ -720,14 +815,14 @@ require('lazy').setup({
         end)(),
         dependencies = {
           -- `friendly-snippets` contains a variety of premade snippets.
-          --    See the README about individual language/framework/plugin snippets:
-          --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          -- See the README about individual language/framework/plugin snippets:
+          -- https://github.com/rafamadriz/friendly-snippets
+          {
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load()
+            end,
+          },
         },
         opts = {},
       },
@@ -822,7 +917,7 @@ require('lazy').setup({
   },
 
   -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = true } },
 
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
@@ -830,7 +925,7 @@ require('lazy').setup({
       -- Better Around/Inside textobjects
       --
       -- Examples:
-      --  - va)  - [V]isually select [A]round [)]paren
+      -- - va)  - [V]isually select [A]round [)]paren
       --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
       --  - ci'  - [C]hange [I]nside [']quote
       require('mini.ai').setup { n_lines = 500 }
@@ -897,7 +992,7 @@ require('lazy').setup({
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
+  require 'kickstart.plugins.indent_line',
   require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',

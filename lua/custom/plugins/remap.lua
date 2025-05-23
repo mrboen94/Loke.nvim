@@ -8,8 +8,8 @@ return {
 
   -- Window management:
   -- Splits:
-  vim.keymap.set('n', '<leader>wsv', ':vsplit<CR>', { desc = 'Vertical [S]plit' }),
-  vim.keymap.set('n', '<leader>wsh', ':split<CR>', { desc = 'Horizontal [S]plit' }),
+  vim.keymap.set('n', '<leader>wV', ':vsplit<CR>', { desc = 'Vertical [S]plit' }),
+  vim.keymap.set('n', '<leader>wH', ':split<CR>', { desc = 'Horizontal [S]plit' }),
   -- Note: The original config had a duplicated <leader>wsh for "Split left".
   -- Generic vertical/horizontal splits are kept. Directional splits are removed to avoid conflict and redundancy.
   -- You can achieve "split left/right/up/below" by combining splits and window movements if needed.

@@ -1,41 +1,5 @@
 local default_font_size = 15
 
--- Function to trigger the font selection UI for WezTerm
-function ChangeWezTermFont()
-  local font_choices = {
-    'PragmataPro Mono Liga',
-    'Comic Code Ligatures',
-  }
-
-  vim.ui.select(font_choices, {
-    prompt = 'Select a font for WezTerm:',
-  }, function(selected_font) -- 'selected_font' is the string value of the chosen item
-    if selected_font then
-      local notification_message = 'WezTerm font set to: ' .. selected_font
-      set_wezterm_font(selected_font, notification_message)
-    else
-      vim.notify('Font selection cancelled.', vim.log.levels.INFO)
-    end
-  end)
-end
-
--- Function to trigger the font selection UI for Neovim GUI
-function ChangeNeovimFont()
-  local fonts = {
-    'PragmataPro Mono Liga', -- Default monospace font
-    'Comic Code Ligatures',
-  }
-
-  vim.ui.select(fonts, {
-    prompt = 'Select a font:',
-  }, function(font)
-    if font then
-      vim.o.guifont = font
-      vim.notify('Font changed to: ' .. font, vim.log.levels.INFO)
-    end
-  end)
-end
-
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
@@ -242,7 +206,7 @@ require('lazy').setup({
       local wezterm_config = require 'wezterm-config'
 
       wezterm_config.setup {
-        append_wezterm_to_rtp = false, -- As you're not requiring modules from Wezterm config
+        append_wezterm_to_rtp = false,
       }
 
       local set_wezterm_font = function(font_name, notify_message)
@@ -253,6 +217,22 @@ require('lazy').setup({
           vim.notify('Error: wezterm_config or set_wezterm_user_var not available.', vim.log.levels.ERROR, { title = 'Wezterm Config' })
           print "Error: wezterm_config or set_wezterm_user_var not available. Ensure it's loaded correctly."
         end
+      end
+
+      -- Function to trigger the font selection UI for Neovim GUI
+      local change_font = function()
+        local fonts = {
+          'PragmataPro Mono Liga', -- Default monospace font
+          'Comic Code Ligatures',
+        }
+
+        vim.ui.select(fonts, {
+          prompt = 'Select a font:',
+        }, function(font)
+          if font then
+            set_wezterm_font(font, 'Font changed to: ' .. font)
+          end
+        end)
       end
       -- local set_wezterm_font = function(font_name, notify_message)
       --   wezterm_config.set_wezterm_user_var('font', font_name)
@@ -280,6 +260,7 @@ require('lazy').setup({
           end
         end)
       end
+
       -- Keymap to reset font size
       vim.keymap.set('n', '<leader>wpr', reset_font_size, { desc = 'Reset Wezterm Font Size' })
 
@@ -287,7 +268,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>wps', prompt_for_font_size, { desc = 'Set Wezterm Font Size' })
 
       -- Keymap to set font
-      vim.keymap.set('n', '<leader>wpp', ':lua ChangeNeovimFont()<CR>', { desc = 'Change Font' })
+      vim.keymap.set('n', '<leader>wpp', change_font, { desc = 'Change Font' })
     end,
   },
 

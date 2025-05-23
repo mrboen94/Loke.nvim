@@ -5,14 +5,12 @@ function ChangeWezTermFont()
   local font_choices = {
     'PragmataPro Mono Liga',
     'Comic Code Ligatures',
-    -- Add any other fonts you want to select from
   }
 
   vim.ui.select(font_choices, {
     prompt = 'Select a font for WezTerm:',
   }, function(selected_font) -- 'selected_font' is the string value of the chosen item
     if selected_font then
-      -- Instead of vim.o.guifont, call your WezTerm function
       local notification_message = 'WezTerm font set to: ' .. selected_font
       set_wezterm_font(selected_font, notification_message)
     else
@@ -23,17 +21,17 @@ end
 
 -- Function to trigger the font selection UI for Neovim GUI
 function ChangeNeovimFont()
-  local fontsss = {
+  local fonts = {
     'PragmataPro Mono Liga', -- Default monospace font
     'Comic Code Ligatures',
   }
 
-  vim.ui.select(fontsss, {
+  vim.ui.select(fonts, {
     prompt = 'Select a font:',
   }, function(font)
     if font then
       vim.o.guifont = font
-      vim.notify('Font changed to: ' .. font, vim.log.level.INFO)
+      vim.notify('Font changed to: ' .. font, vim.log.levels.INFO)
     end
   end)
 end
@@ -243,9 +241,9 @@ require('lazy').setup({
     config = function()
       local wezterm_config = require 'wezterm-config'
 
-      wezterm_config.setup ({
+      wezterm_config.setup {
         append_wezterm_to_rtp = false, -- As you're not requiring modules from Wezterm config
-      })
+      }
 
       local set_wezterm_font = function(font_name, notify_message)
         if wezterm_config and wezterm_config.set_wezterm_user_var then
